@@ -29,6 +29,7 @@ def register_user(message):
 
 # Vazifani foydalanuvchilarga yuborish
 
+
 def send_task_to_users(task_text, description, start_date, deadline):
     try:
         with open('users.json', 'r') as f:
@@ -44,10 +45,15 @@ def send_task_to_users(task_text, description, start_date, deadline):
 
     for user_id in data["users"]:
         try:
+            markup = types.InlineKeyboardMarkup()
+            btn = types.InlineKeyboardButton("✅ Vazifa bajarildi", callback_data=f"done_{task_text}")
+            markup.add(btn)
+
             bot.send_message(
                 user_id,
                 f"📝 Yangi vazifa:\n\n<b>{task_text}</b>\n\n🧾 {description}\n\n📆 Boshlanish: {start_date}\n⏰ Tugash: {deadline}",
-                parse_mode='HTML'
+                parse_mode='HTML',
+                reply_markup=markup
             )
         except Exception as e:
             print(f"❌ {user_id} ga yuborishda xatolik: {e}")
@@ -97,6 +103,31 @@ def vazifa_berish(message):
     bot.register_next_step_handler(message, get_task_name)
 
 # /vazifa_bajarish komandasi: ishchi tomonidan vazifani bajarilgan deb belgilash
+@bot.callback_query_handler(func=lambda call: call.data.startswith("done_"))
+def handle_done_button(call):
+    user_id = call.from_user.id
+    task_name = call.data[5:]  # "done_" dan keyingi qism
+
+    try:
+        with open('tasks.json', 'r') as f:
+            tasks = json.load(f)
+    except FileNotFoundError:
+        tasks = []
+
+    updated = False
+    for task in tasks:
+        if (task["task"] == task_name and task["assigned_to"] == user_id and not task["done"]):
+            task["done"] = True
+            updated = True
+
+    if updated:
+        with open('tasks.json', 'w') as f:
+            json.dump(tasks, f, indent=2)
+        bot.answer_callback_query(call.id, "✅ Vazifa bajarildi deb belgilandi.")
+        bot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=None)
+    else:
+        bot.answer_callback_query(call.id, "❌ Vazifa topilmadi yoki allaqachon bajarilgan.")
+
 @bot.message_handler(commands=['vazifa_bajarish'])
 def bajarildi(message):
     user_id = message.from_user.id
