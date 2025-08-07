@@ -139,7 +139,7 @@ def vazifa_berish(message):
             # Bu yerga qo‘shamiz:
             send_task_to_users(task_text, deadline)
             bot.send_message(chat_id, "✅ Vazifa yuborildi.")
-send_task_to_users()
+
 
 @bot.message_handler(commands=['vazifa_bajarish'])
 def bajarildi(message):
