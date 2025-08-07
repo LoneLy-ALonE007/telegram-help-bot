@@ -1,9 +1,10 @@
 import telebot
 from telebot import types
 import os
-
-from datetime import datetime
 import json
+import threading
+import time
+from datetime import datetime
 
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -157,6 +158,38 @@ def bajarildi(message):
 
     bot.register_next_step_handler(message, get_task_name)
 
+def check_and_notify_tasks():
+    while True:
+        try:
+            with open('tasks.json', 'r') as f:
+                tasks = json.load(f)
+        except FileNotFoundError:
+            tasks = []
+
+        now = datetime.now()
+
+        for task in tasks:
+            if not task["done"]:
+                try:
+                    deadline = datetime.strptime(task["deadline"], "%d-%m-%Y")
+
+                    # 1 kun qolganda eslatma
+                    if (deadline - now).days == 1:
+                        bot.send_message(
+                            task["assigned_to"],
+                            f"⚠️ Eslatma: '{task['task']}' vazifasi ertaga ({task['deadline']}) tugaydi."
+                        )
+
+                    # Muddat o‘tib ketgan bo‘lsa — har 1 soatda ogohlantirish
+                    if now > deadline:
+                        bot.send_message(
+                            task["assigned_to"],
+                            f"⛔ Diqqat! '{task['task']}' vazifasi {task['deadline']} kuni tugagan,\nhali bajarmagansiz!"
+                        )
+                except Exception as e:
+                    print(f"Ogohlantirishda xatolik: {e}")
+
+        time.sleep(3600)  # 1 soatda bir marta ishga tushadi
 
 # Botni doimiy ishga tushurish
 bot.infinity_polling()
