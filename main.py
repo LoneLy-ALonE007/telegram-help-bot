@@ -106,20 +106,7 @@ def bajarildi(message):
             bot.send_message(user_id, "❌ Bunday vazifa topilmadi yoki allaqachon bajarilgan.")
 
     bot.register_next_step_handler(message, get_task_name)
-@bot.message_handler(commands=['test'])
-def test_send(message):
-    try:
-        with open('users.json', 'r') as f:
-            data = json.load(f)
-    except:
-        data = {"users": []}
 
-    for user_id in data["users"]:
-        try:
-            bot.send_message(user_id, "✅ TEST xabari: bot sizga xabar yubora olyapti.")
-            print(f"✅ Xabar yuborildi: {user_id}")
-        except Exception as e:
-            print(f"❌ Xatolik: {user_id} => {e}")
 
 # Botni doimiy ishga tushurish
 bot.infinity_polling()
