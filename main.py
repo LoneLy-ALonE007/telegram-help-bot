@@ -2,10 +2,11 @@ import telebot
 import os
 from telebot.types import Message
 from datetime import datetime
+import json
 
-ADMINS = [6008741577]
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 bot = telebot.TeleBot(BOT_TOKEN)
+ADMINS = [6008741577]
 
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -77,6 +78,52 @@ def process_task_steps(message: Message):
 
         except ValueError:
             bot.send_message(user_id, "❗ Noto‘g‘ri format. Iltimos, YYYY-MM-DD HH:MM formatda yozing.")
+@bot.message_handler(commands=['start'])
+def register_user(message):
+    user_id = message.from_user.id
+    try:
+        with open('users.json', 'r') as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        data = {"users": []}
 
+    if user_id not in data["users"]:
+        data["users"].append(user_id)
+        with open('users.json', 'w') as f:
+            json.dump(data, f)
+        bot.reply_to(message, "✅ Ro'yxatdan muvaffaqiyatli o'tdingiz.")
+    else:
+        bot.reply_to(message, "Siz allaqachon ro'yxatdan o'tgansiz.")
+
+@bot.message_handler(commands=['vazifa_berish'])
+
+def send_task_to_users(task_text, deadline):
+    with open('users.json', 'r') as f:
+        data = json.load(f)
+
+    for user_id in data["users"]:
+        try:
+            bot.send_message(user_id, f"📝 Yangi vazifa:\n\n{task_text}\n\n🗓 Tugash muddati: {deadline}")
+        except Exception as e:
+            print(f"❌ Xatolik {user_id} ga yuborishda: {e}")
+@bot.message_handler(commands=['vazifa_berish'])
+def vazifa_berish(message):
+    chat_id = message.chat.id
+    markup = types.ForceReply()
+    bot.send_message(chat_id, "📝 Vazifa matnini kiriting:", reply_markup=markup)
+
+    @bot.message_handler(func=lambda msg: msg.reply_to_message and msg.reply_to_message.text == "📝 Vazifa matnini kiriting:")
+    def qabul_qilish(msg):
+        task_text = msg.text
+        markup2 = types.ForceReply()
+        bot.send_message(chat_id, "🗓 Tugash muddatini kiriting (YYYY-MM-DD HH:MM):", reply_markup=markup2)
+
+        @bot.message_handler(func=lambda m: m.reply_to_message and "Tugash muddatini kiriting" in m.reply_to_message.text)
+        def sana_qabul(m):
+            deadline = m.text
+            # Bu yerga qo‘shamiz:
+            send_task_to_users(task_text, deadline)
+            bot.send_message(chat_id, "✅ Vazifa yuborildi.")
+send_task_to_users()
 
 bot.polling(non_stop=True)
