@@ -80,7 +80,7 @@ def process_task_steps(message: Message):
             bot.send_message(user_id, "❗ Noto‘g‘ri format. Iltimos, YYYY-MM-DD HH:MM formatda yozing.")
 
 
-bot.polling(non_stop=True)
+
 @bot.message_handler(commands=['start'])
 def register_user(message):
     user_id = message.from_user.id
@@ -109,6 +109,18 @@ def send_task_to_users(task_text, deadline):
             bot.send_message(user_id, f"📝 Yangi vazifa:\n\n{task_text}\n\n🗓 Tugash muddati: {deadline}")
         except Exception as e:
             print(f"❌ Xatolik {user_id} ga yuborishda: {e}")
+
+    tasks.append({
+            "task": task_text,
+            "deadline": deadline,
+            "assigned_to": user_id,
+            "done": False
+        })
+
+    # Yangi vazifalarni faylga yozish
+    with open('tasks.json', 'w') as f:
+        json.dump(tasks, f, indent=2)
+
 @bot.message_handler(commands=['vazifa_berish'])
 def vazifa_berish(message):
     chat_id = message.chat.id
@@ -128,5 +140,37 @@ def vazifa_berish(message):
             send_task_to_users(task_text, deadline)
             bot.send_message(chat_id, "✅ Vazifa yuborildi.")
 send_task_to_users()
+
+@bot.message_handler(commands=['vazifa_bajarish'])
+def bajarildi(message):
+    user_id = message.from_user.id
+    bot.send_message(user_id, "📝 Qaysi vazifani bajardingiz? (aniq matnini yozing)")
+
+    def get_task_name(msg):
+        task_name = msg.text.strip()
+
+        try:
+            with open('tasks.json', 'r') as f:
+                tasks = json.load(f)
+        except FileNotFoundError:
+            tasks = []
+
+        updated = False
+        for task in tasks:
+            if (task["task"] == task_name and
+                task.get("assigned_to") == user_id and
+                not task.get("done", False)):
+                task["done"] = True
+                updated = True
+
+        if updated:
+            with open('tasks.json', 'w') as f:
+                json.dump(tasks, f, indent=2)
+            bot.send_message(user_id, "✅ Vazifa bajarilgan deb belgilandi.")
+        else:
+            bot.send_message(user_id, "❌ Bunday vazifa topilmadi yoki allaqachon bajarilgan.")
+
+    bot.register_next_step_handler(message, get_task_name)
+
 
 bot.polling(non_stop=True)
