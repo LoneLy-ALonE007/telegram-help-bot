@@ -3,8 +3,10 @@ services:
     name: telegram-help-bot
     env: python
     plan: free
-    buildCommand: ""
-    startCommand: "python main.py"
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
     envVars:
       - key: BOT_TOKEN
         value: 8412647394:AAEDRqeD23Wwm7QqtQZyT7AlygsXUCRHJhU
+    pythonVersion: 3.10
+
