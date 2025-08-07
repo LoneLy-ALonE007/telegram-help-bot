@@ -78,6 +78,9 @@ def process_task_steps(message: Message):
 
         except ValueError:
             bot.send_message(user_id, "❗ Noto‘g‘ri format. Iltimos, YYYY-MM-DD HH:MM formatda yozing.")
+
+
+bot.polling(non_stop=True)
 @bot.message_handler(commands=['start'])
 def register_user(message):
     user_id = message.from_user.id
