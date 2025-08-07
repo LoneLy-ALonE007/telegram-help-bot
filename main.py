@@ -29,7 +29,7 @@ def register_user(message):
 
 # Vazifani foydalanuvchilarga yuborish
 
-def send_task_to_users(task_text, description, start_time, deadline):
+def send_task_to_users(task_text, description, start_date, deadline):
     try:
         with open('users.json', 'r') as f:
             data = json.load(f)
@@ -46,7 +46,7 @@ def send_task_to_users(task_text, description, start_time, deadline):
         try:
             bot.send_message(
                 user_id,
-                f"📝 Yangi vazifa:\n\n<b>{task_text}</b>\n\n🧾 {description}\n\n📆 Boshlanish: {start_time}\n⏰ Tugash: {deadline}",
+                f"📝 Yangi vazifa:\n\n<b>{task_text}</b>\n\n🧾 {description}\n\n📆 Boshlanish: {start_date}\n⏰ Tugash: {deadline}",
                 parse_mode='HTML'
             )
         except Exception as e:
@@ -55,7 +55,7 @@ def send_task_to_users(task_text, description, start_time, deadline):
         tasks.append({
             "task": task_text,
             "description": description,
-            "start": start_time,
+            "start": start_date,
             "deadline": deadline,
             "assigned_to": user_id,
             "done": False
@@ -69,20 +69,32 @@ def send_task_to_users(task_text, description, start_time, deadline):
 @bot.message_handler(commands=['vazifa_berish'])
 def vazifa_berish(message):
     chat_id = message.chat.id
-    bot.send_message(chat_id, "📝 Vazifa matnini kiriting:")
+    bot.send_message(chat_id, "📝 Vazifa nomini kiriting:")
 
-    def get_task(msg):
+    def get_task_name(msg):
         task_text = msg.text
-        bot.send_message(chat_id, "🗓 Tugash muddatini kiriting (YYYY-MM-DD HH:MM):")
+        bot.send_message(chat_id, "🧾 Vazifa tavsifini kiriting:")
 
-        def get_deadline(deadline_msg):
-            deadline = deadline_msg.text
-            send_task_to_users(task_text, deadline)
-            bot.send_message(chat_id, "✅ Vazifa yuborildi.")
+        def get_description(msg2):
+            description = msg2.text
+            bot.send_message(chat_id, "📆 Boshlanish sanasini kiriting (DD-MM-YYYY):")
 
-        bot.register_next_step_handler(deadline_msg := msg, get_deadline)
+            def get_start_date(msg3):
+                start_date = msg3.text
+                bot.send_message(chat_id, "⏰ Tugash sanasini kiriting (DD-MM-YYYY):")
 
-    bot.register_next_step_handler(message, get_task)
+                def get_deadline(msg4):
+                    deadline = msg4.text
+                    send_task_to_users(task_text, description, start_date, deadline)
+                    bot.send_message(chat_id, "✅ Vazifa barcha ishchilarga yuborildi.")
+
+                bot.register_next_step_handler(msg3, get_deadline)
+
+            bot.register_next_step_handler(msg2, get_start_date)
+
+        bot.register_next_step_handler(msg, get_description)
+
+    bot.register_next_step_handler(message, get_task_name)
 
 # /vazifa_bajarish komandasi: ishchi tomonidan vazifani bajarilgan deb belgilash
 @bot.message_handler(commands=['vazifa_bajarish'])
