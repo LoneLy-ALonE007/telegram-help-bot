@@ -29,7 +29,7 @@ def register_user(message):
 
 # Vazifani foydalanuvchilarga yuborish
 
-def send_task_to_users(task_text, deadline):
+def send_task_to_users(task_text, description, start_time, deadline):
     try:
         with open('users.json', 'r') as f:
             data = json.load(f)
@@ -44,12 +44,18 @@ def send_task_to_users(task_text, deadline):
 
     for user_id in data["users"]:
         try:
-            bot.send_message(user_id, f"📝 Yangi vazifa:\n\n{task_text}\n\n🗓 Tugash muddati: {deadline}")
+            bot.send_message(
+                user_id,
+                f"📝 Yangi vazifa:\n\n<b>{task_text}</b>\n\n🧾 {description}\n\n📆 Boshlanish: {start_time}\n⏰ Tugash: {deadline}",
+                parse_mode='HTML'
+            )
         except Exception as e:
             print(f"❌ {user_id} ga yuborishda xatolik: {e}")
 
         tasks.append({
             "task": task_text,
+            "description": description,
+            "start": start_time,
             "deadline": deadline,
             "assigned_to": user_id,
             "done": False
@@ -57,6 +63,7 @@ def send_task_to_users(task_text, deadline):
 
     with open('tasks.json', 'w') as f:
         json.dump(tasks, f, indent=2)
+
 
 # /vazifa_berish komandasi: admin tomonidan vazifa yuborish
 @bot.message_handler(commands=['vazifa_berish'])
