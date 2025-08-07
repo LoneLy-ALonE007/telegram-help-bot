@@ -71,7 +71,16 @@ def send_task_to_users(task_text, description, start_date, deadline):
     with open('tasks.json', 'w') as f:
         json.dump(tasks, f, indent=2)
 
-
+def notify_admins(task_name, user_id):
+    for admin_id in ADMINS:
+        try:
+            bot.send_message(
+                admin_id,
+                f"ℹ️ Foydalanuvchi <code>{user_id}</code> quyidagi vazifani bajardi:\n\n✅ {task_name}",
+                parse_mode='HTML'
+            )
+        except Exception as e:
+            print(f"Adminni ogohlantirishda xatolik: {e}")
 # /vazifa_berish komandasi: admin tomonidan vazifa yuborish
 @bot.message_handler(commands=['vazifa_berish'])
 def vazifa_berish(message):
@@ -152,6 +161,13 @@ def bajarildi(message):
         if updated:
             with open('tasks.json', 'w') as f:
                 json.dump(tasks, f, indent=2)
+            bot.send_message(user_id, "✅ Vazifa bajarilgan deb belgilandi.")
+        if updated:
+            with open('tasks.json', 'w') as f:
+                json.dump(tasks, f, indent=2)
+
+            notify_admins(task_name, user_id)  # 👈 Shu yerga qo‘shing
+
             bot.send_message(user_id, "✅ Vazifa bajarilgan deb belgilandi.")
         else:
             bot.send_message(user_id, "❌ Bunday vazifa topilmadi yoki allaqachon bajarilgan.")
