@@ -1,13 +1,5 @@
 [
   {
-    "task": "dwada",
-    "description": "dwada",
-    "start": "dawda",
-    "deadline": "dwadaw",
-    "assigned_to": 1256801155,
-    "done": true
-  },
-  {
     "task": "ddawda",
     "description": "grgrd",
     "start": "fesfe",
@@ -44,14 +36,6 @@
     "description": "esfsefse",
     "start": "ffesfse",
     "deadline": "fsfs",
-    "assigned_to": 1256801155,
-    "done": true
-  },
-  {
-    "task": "dwada",
-    "description": "dwdwa",
-    "start": "dwada",
-    "deadline": "dwada",
     "assigned_to": 1256801155,
     "done": true
   },
@@ -240,51 +224,83 @@
     "done": true
   },
   {
-    "task": "daw",
-    "description": "dad",
-    "start": "daw",
-    "deadline": "dwa",
+    "task": "/vazifa_berish",
+    "description": "dadw",
+    "start": "dwa",
+    "deadline": "daw",
     "assigned_to": 1256801155,
     "done": true
   },
   {
-    "task": "daw",
-    "description": "dad",
-    "start": "daw",
-    "deadline": "dwa",
+    "task": "/vazifa_berish",
+    "description": "dadw",
+    "start": "dwa",
+    "deadline": "daw",
     "assigned_to": 1387288889,
     "done": false
   },
   {
-    "task": "daw",
-    "description": "dad",
-    "start": "daw",
-    "deadline": "dwa",
+    "task": "/vazifa_berish",
+    "description": "dadw",
+    "start": "dwa",
+    "deadline": "daw",
     "assigned_to": 5015267145,
     "done": false
   },
   {
-    "task": "daw",
-    "description": "dad",
-    "start": "daw",
-    "deadline": "dwa",
+    "task": "/vazifa_berish",
+    "description": "dadw",
+    "start": "dwa",
+    "deadline": "daw",
     "assigned_to": -1002502442042,
     "done": false
   },
   {
-    "task": "daw",
-    "description": "dad",
-    "start": "daw",
-    "deadline": "dwa",
+    "task": "/vazifa_berish",
+    "description": "dadw",
+    "start": "dwa",
+    "deadline": "daw",
     "assigned_to": 821602989,
     "done": false
   },
   {
-    "task": "daw",
-    "description": "dad",
-    "start": "daw",
-    "deadline": "dwa",
-    "assigned_to": 6008741577,
+    "task": "/vazifa_berish",
+    "description": "dadw",
+    "start": "dwa",
+    "deadline": "daw",
+    "assigned_to": 1256801155,
+    "done": true
+  },
+  {
+    "task": "/vazifa_berish",
+    "description": "dadw",
+    "start": "dwa",
+    "deadline": "daw",
+    "assigned_to": 1387288889,
+    "done": false
+  },
+  {
+    "task": "/vazifa_berish",
+    "description": "dadw",
+    "start": "dwa",
+    "deadline": "daw",
+    "assigned_to": 5015267145,
+    "done": false
+  },
+  {
+    "task": "/vazifa_berish",
+    "description": "dadw",
+    "start": "dwa",
+    "deadline": "daw",
+    "assigned_to": -1002502442042,
+    "done": false
+  },
+  {
+    "task": "/vazifa_berish",
+    "description": "dadw",
+    "start": "dwa",
+    "deadline": "daw",
+    "assigned_to": 821602989,
     "done": false
   }
 ]

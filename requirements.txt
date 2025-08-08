@@ -1,3 +1,4 @@
 pyTelegramBotAPI~=4.28.0
 pytz~=2025.2
 django-scheduler~=0.10.1
+Flask==2.3.2
