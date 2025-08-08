@@ -7,13 +7,10 @@ import time
 from datetime import datetime
 import pytz
 import schedule
-from telebot.types import BotCommand
 from flask import Flask, request
 
-# =================== Sozlamalar ===================
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8412647394:AAEDRqeD23Wwm7QqtQZyT7AlygsXUCRHJhU")
 WEBHOOK_HOST = "https://telegram-help-bot.onrender.com"
-  # Render yoki Railway domeni
 WEBHOOK_PATH = "/webhook"
 WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
 
@@ -23,7 +20,7 @@ ADMINS = [6008741577]
 
 app = Flask(__name__)
 
-# =================== Foydalanuvchi ro'yxatga olish ===================
+# === /start komandasi
 @bot.message_handler(commands=['start'])
 def register_user(message):
     chat_id = message.chat.id
@@ -41,7 +38,7 @@ def register_user(message):
     else:
         bot.send_message(chat_id, "Siz allaqachon ro'yxatdan o'tgansiz.")
 
-# =================== Vazifani foydalanuvchilarga yuborish ===================
+# === Vazifani yuborish
 def send_task_to_users(task_text, description, start_date, deadline):
     try:
         with open('users.json', 'r') as f:
@@ -82,7 +79,7 @@ def send_task_to_users(task_text, description, start_date, deadline):
     with open('tasks.json', 'w') as f:
         json.dump(tasks, f, indent=2)
 
-# =================== Adminni ogohlantirish ===================
+# === Adminni ogohlantirish
 def notify_admins(task_name, user_id):
     try:
         user = bot.get_chat(user_id)
@@ -103,7 +100,7 @@ def notify_admins(task_name, user_id):
         except Exception as e:
             print(f"Adminni ogohlantirishda xatolik: {e}")
 
-# =================== Vazifa berish (admin) ===================
+# === Vazifa berish
 @bot.message_handler(commands=['vazifa_berish'])
 def vazifa_berish(message):
     chat_id = message.chat.id
@@ -134,7 +131,7 @@ def vazifa_berish(message):
 
     bot.register_next_step_handler(message, get_task_name)
 
-# =================== Vazifa bajarildi tugmasi ===================
+# === Vazifa bajarildi tugmasi
 @bot.callback_query_handler(func=lambda call: call.data.startswith("done_"))
 def handle_done_button(call):
     user_id = call.from_user.id
@@ -161,7 +158,7 @@ def handle_done_button(call):
     else:
         bot.answer_callback_query(call.id, "❌ Vazifa topilmadi yoki allaqachon bajarilgan.")
 
-# =================== Doimiy eslatmalar ===================
+# === Doimiy eslatmalar
 def send_monthly_reminders():
     now = datetime.now(tashkent_tz)
     try:
@@ -193,7 +190,7 @@ def schedule_jobs():
         schedule.run_pending()
         time.sleep(60)
 
-# =================== Webhook marshrutlari ===================
+# === Webhook marshrutlari
 @app.route(WEBHOOK_PATH, methods=['POST'])
 def webhook():
     json_str = request.get_data().decode('UTF-8')
@@ -205,9 +202,9 @@ def webhook():
 def index():
     return "Bot ishlayapti!", 200
 
-# =================== Botni ishga tushurish ===================
-if __name__ == "__main__":
+# === Ishga tushirish
+if __name__ != "__main__":
     threading.Thread(target=schedule_jobs).start()
     bot.remove_webhook()
     bot.set_webhook(url=WEBHOOK_URL)
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+
