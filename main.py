@@ -12,7 +12,8 @@ from flask import Flask, request
 
 # =================== Sozlamalar ===================
 BOT_TOKEN = os.getenv("BOT_TOKEN", "8412647394:AAEDRqeD23Wwm7QqtQZyT7AlygsXUCRHJhU")
-WEBHOOK_HOST = "https://sening-bot-adresing.onrender.com"  # Render yoki Railway domeni
+WEBHOOK_HOST = "https://telegram-help-bot.onrender.com"
+  # Render yoki Railway domeni
 WEBHOOK_PATH = "/webhook"
 WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
 
