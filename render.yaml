@@ -4,7 +4,7 @@ services:
     env: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn main:app
+    startCommand: python main.py
     envVars:
       - key: BOT_TOKEN
         value: 8412647394:AAEDRqeD23Wwm7QqtQZyT7AlygsXUCRHJhU
