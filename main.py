@@ -4,7 +4,6 @@ import os
 import json
 import threading
 import time
-from datetime import datetime
 import pytz
 import schedule
 from telebot.types import BotCommand
@@ -135,10 +134,9 @@ def handle_done_button(call):
     updated = False
 
     for task in tasks:
-        if task["task"] == task_name and task["assigned_to"] == user_id and not task["done"]:
+        if task["task"] == task_name and not task["done"]:
             task["done"] = True
             updated = True
-            break
 
     if updated:
         save_tasks(tasks)
