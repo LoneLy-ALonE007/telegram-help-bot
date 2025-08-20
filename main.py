@@ -252,13 +252,14 @@ def load_monthly_tasks():
     try:
         with open('monthly_tasks.json', 'r') as f:
             return json.load(f)
-    except FileNotFoundError:
+    except (FileNotFoundError, json.JSONDecodeError):
         return []
 
 def save_monthly_tasks(tasks):
     with open('monthly_tasks.json', 'w') as f:
         json.dump(tasks, f, indent=2)
 
+# ➕ Doimiy vazifa qo‘shish
 @bot.message_handler(commands=['doimiy_vazifa_qoshish'])
 def add_monthly_task(message):
     if message.from_user.id not in ADMINS:
@@ -285,21 +286,13 @@ def add_monthly_task(message):
                     bot.send_message(chat_id, "❌ Xato: 1 dan 28 gacha son kiriting.")
                     return
 
-
-                try:
-                    with open('monthly_tasks.json', 'r') as f:
-                        data = json.load(f)
-                except FileNotFoundError:
-                    data = []
-
-                data.append({
+                tasks = load_monthly_tasks()
+                tasks.append({
                     "task": task_name,
                     "description": description,
                     "day_of_month": day
                 })
-
-                with open('monthly_tasks.json', 'w') as f:
-                    json.dump(data, f, indent=2)
+                save_monthly_tasks(tasks)
 
                 bot.send_message(chat_id, "✅ Doimiy vazifa qo‘shildi.")
 
@@ -320,22 +313,50 @@ def delete_monthly_task(message):
     def get_task_name(msg):
         task_name = msg.text.strip()
 
-        try:
-            with open('monthly_tasks.json', 'r') as f:
-                tasks = json.load(f)
-        except FileNotFoundError:
-            tasks = []
-
+        tasks = load_monthly_tasks()
         new_tasks = [task for task in tasks if task["task"] != task_name]
 
         if len(new_tasks) < len(tasks):
-            with open('monthly_tasks.json', 'w') as f:
-                json.dump(new_tasks, f, indent=2)
+            save_monthly_tasks(new_tasks)
             bot.send_message(message.chat.id, f"✅ '{task_name}' nomli doimiy vazifa o‘chirildi.")
         else:
             bot.send_message(message.chat.id, f"❌ '{task_name}' nomli doimiy vazifa topilmadi.")
 
     bot.register_next_step_handler(message, get_task_name)
+
+def send_monthly_reminders():
+    now = datetime.now(tashkent_tz)
+    tasks = load_monthly_tasks()
+
+    for task in tasks:
+        start_day = task["day_of_month"]
+        delta_days = now.day - start_day
+
+        # faqat 5 kun ichida (har oy belgilangan sanadan keyin)
+        if 0 <= delta_days < 5:
+            with open('users.json', 'r') as f:
+                data = json.load(f)
+
+            for user_id in data["users"]:
+                try:
+                    bot.send_message(
+                        user_id,
+                        f"🔔 <b>Doimiy vazifa eslatmasi</b>:\n\n📝 {task['task']}\n🧾 {task['description']}",
+                        parse_mode='HTML'
+                    )
+                except Exception as e:
+                    print(f"❌ Ogohlantirish yuborishda xatolik: {e}")
+
+def schedule_jobs():
+    schedule.every().day.at("10:00").do(send_monthly_reminders)
+    schedule.every().day.at("16:00").do(send_monthly_reminders)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(60)
+
+# Thread orqali ishga tushuriladi
+threading.Thread(target=schedule_jobs, daemon=True).start()
 
 @bot.message_handler(commands=['doimiy_hisobot'])
 def show_monthly_tasks(message):
