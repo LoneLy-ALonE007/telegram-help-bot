@@ -19,6 +19,19 @@ ADMINS = [6008741577]
 
 bot.remove_webhook()
 
+
+
+
+def run_with_timezone():
+    now = datetime.now(tashkent_tz).strftime("%H:%M")
+    if now in ["10:00", "16:00"]:
+        send_monthly_reminders()
+
+
+def schedule_jobs():
+    while True:
+        run_with_timezone()
+        time.sleep(60)
 # --- FOYDALANUVCHILAR RO'YXATI --- #
 def load_users():
     try:
@@ -332,17 +345,30 @@ def send_monthly_reminders():
         start_day = task["day_of_month"]
         delta_days = now.day - start_day
 
-        # faqat 5 kun ichida (har oy belgilangan sanadan keyin)
+        # Faqat 5 kun ichida eslatma yuboriladi
         if 0 <= delta_days < 5:
-            with open('users.json', 'r') as f:
-                data = json.load(f)
+            try:
+                with open('users.json', 'r') as f:
+                    data = json.load(f)
+            except FileNotFoundError:
+                data = {"users": []}
 
             for user_id in data["users"]:
                 try:
+                    # ✅ Tugma yaratish
+                    markup = types.InlineKeyboardMarkup()
+                    btn = types.InlineKeyboardButton(
+                        "✅ Vazifa bajarildi",
+                        callback_data=f"monthly_done_{task['task']}"
+                    )
+                    markup.add(btn)
+
                     bot.send_message(
                         user_id,
-                        f"🔔 <b>Doimiy vazifa eslatmasi</b>:\n\n📝 {task['task']}\n🧾 {task['description']}",
-                        parse_mode='HTML'
+                        f"🔔 <b>Doimiy vazifa eslatmasi</b>:\n\n"
+                        f"📝 {task['task']}\n🧾 {task['description']}",
+                        parse_mode='HTML',
+                        reply_markup=markup
                     )
                 except Exception as e:
                     print(f"❌ Ogohlantirish yuborishda xatolik: {e}")
