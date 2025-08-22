@@ -339,44 +339,91 @@ def delete_monthly_task(message):
 
 def send_monthly_reminders():
     now = datetime.now(tashkent_tz)
-    tasks = load_monthly_tasks()
+    monthly_tasks = load_monthly_tasks()
 
-    for task in tasks:
+    for task in monthly_tasks:
         start_day = task["day_of_month"]
         delta_days = now.day - start_day
 
-        # Faqat 5 kun ichida eslatma yuboriladi
-        if 0 <= delta_days < 5:
+        # ✅ faqat 5 kun ichida va hali bajarilmagan bo‘lsa
+        if 0 <= delta_days < 5 and not task.get("done", False):
             try:
                 with open('users.json', 'r') as f:
-                    data = json.load(f)
+                    users = json.load(f)["users"]
             except FileNotFoundError:
-                data = {"users": []}
+                users = []
 
-            for user_id in data["users"]:
+            for user_id in users:
                 try:
-                    # ✅ Tugma yaratish
                     markup = types.InlineKeyboardMarkup()
-                    btn = types.InlineKeyboardButton(
-                        "✅ Vazifa bajarildi",
-                        callback_data=f"monthly_done_{task['task']}"
-                    )
+                    btn = types.InlineKeyboardButton("✅ Doimiy vazifa bajarildi", callback_data=f"monthly_done_{task['task']}")
                     markup.add(btn)
 
                     bot.send_message(
                         user_id,
-                        f"🔔 <b>Doimiy vazifa eslatmasi</b>:\n\n"
-                        f"📝 {task['task']}\n🧾 {task['description']}",
-                        parse_mode='HTML',
+                        f"🔔 <b>Doimiy vazifa</b>:\n\n📝 {task['task']}\n🧾 {task['description']}",
+                        parse_mode="HTML",
                         reply_markup=markup
                     )
                 except Exception as e:
                     print(f"❌ Ogohlantirish yuborishda xatolik: {e}")
 
-def schedule_jobs():
-    schedule.every().day.at("10:00").do(send_monthly_reminders)
-    schedule.every().day.at("16:00").do(send_monthly_reminders)
 
+@bot.callback_query_handler(func=lambda call: call.data.startswith("monthly_done_"))
+def handle_monthly_done(call):
+    user_id = call.from_user.id
+    task_name = call.data.replace("monthly_done_", "")
+
+    tasks = load_monthly_tasks()
+    updated = False
+
+    for task in tasks:
+        if task["task"] == task_name and not task.get("done", False):
+            task["done"] = True
+            updated = True
+
+            # ✅ Adminlarga xabar
+            try:
+                user = bot.get_chat(user_id)
+                full_name = f"{user.first_name or ''} {user.last_name or ''}".strip()
+                username = f"@{user.username}" if user.username else "(username yo'q)"
+
+                for admin_id in ADMINS:
+                    bot.send_message(
+                        admin_id,
+                        f"ℹ️ Foydalanuvchi: <b>{full_name}</b> {username}\n✅ Doimiy vazifa: <b>{task_name}</b> bajarildi.",
+                        parse_mode="HTML"
+                    )
+            except Exception as e:
+                print(f"Admin ogohlantirishda xatolik: {e}")
+
+    if updated:
+        save_monthly_tasks(tasks)
+        bot.answer_callback_query(call.id, "✅ Vazifa bajarildi deb belgilandi.")
+        bot.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
+    else:
+        bot.answer_callback_query(call.id, "❌ Bu vazifa allaqachon bajarilgan.")
+
+def reset_monthly_tasks():
+    now = datetime.now(tashkent_tz)
+    tasks = load_monthly_tasks()
+    updated = False
+
+    if now.day == 1:  # har oyning 1-kuni
+        for task in tasks:
+            if task.get("done", False):
+                task["done"] = False
+                updated = True
+
+    if updated:
+        save_monthly_tasks(tasks)
+        print("♻️ Doimiy vazifalar qayta faollashtirildi.")
+
+def schedule_jobs():
+    schedule.every().day.at("5:00").do(send_monthly_reminders)
+    schedule.every().day.at("11:00").do(send_monthly_reminders)
+
+    schedule.every().day.at("00:05").do(reset_monthly_tasks)
     while True:
         schedule.run_pending()
         time.sleep(60)
