@@ -420,7 +420,7 @@ def reset_monthly_tasks():
         print("♻️ Doimiy vazifalar qayta faollashtirildi.")
 
 def schedule_jobs():
-    schedule.every().day.at("5:00").do(send_monthly_reminders)
+    schedule.every().day.at("05:00").do(send_monthly_reminders)
     schedule.every().day.at("11:00").do(send_monthly_reminders)
 
     schedule.every().day.at("00:05").do(reset_monthly_tasks)
